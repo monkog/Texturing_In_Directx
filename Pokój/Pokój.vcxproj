@@ -139,6 +139,7 @@
     <ClCompile Include="gk2_vertices.cpp" />
     <ClCompile Include="gk2_window.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="gk2_multiTextureEffect.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="gk2_applicationBase.h" />
@@ -159,6 +160,7 @@
     <ClInclude Include="gk2_utils.h" />
     <ClInclude Include="gk2_vertices.h" />
     <ClInclude Include="gk2_window.h" />
+    <ClInclude Include="gk2_multiTextureEffect.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="resources\meshes\chair_back.mesh" />
@@ -169,6 +171,7 @@
     <None Include="resources\meshes\teapot.mesh" />
     <None Include="resources\shaders\ColorTexShader.hlsl" />
     <None Include="resources\shaders\EnvMapShader.hlsl" />
+    <None Include="resources\shaders\MultiTextureShader.hlsl" />
     <None Include="resources\shaders\PhongShader.hlsl" />
     <None Include="resources\shaders\TextureShader.hlsl" />
     <None Include="resources\textures\brick_wall.jpg" />

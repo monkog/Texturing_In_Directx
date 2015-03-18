@@ -6,6 +6,7 @@
 #include "gk2_camera.h"
 #include "gk2_phongEffect.h"
 #include "gk2_textureEffect.h"
+#include "gk2_multiTextureEffect.h"
 #include "gk2_constantBuffer.h"
 #include "gk2_colorTexEffect.h"
 #include "gk2_environmentMapper.h"
@@ -72,7 +73,7 @@ namespace gk2
 		std::shared_ptr<gk2::PhongEffect> m_phongEffect;
 		std::shared_ptr<gk2::TextureEffect> m_textureEffect;
 		std::shared_ptr<gk2::ColorTexEffect> m_colorTexEffect;
-		//TODO: Add multi texture effect
+		std::shared_ptr<gk2::MultiTextureEffect> m_multiTexEffect;
 		std::shared_ptr<gk2::EnvironmentMapper> m_environmentMapper;
 		std::shared_ptr<ID3D11InputLayout> m_layout;
 

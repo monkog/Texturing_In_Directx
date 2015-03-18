@@ -179,7 +179,13 @@ bool Room::LoadContent()
 	m_colorTexEffect->SetTexture(m_perlinTexture);
 	m_colorTexEffect->SetSurfaceColorBuffer(m_surfaceColorCB);
 
-	//TODO: Initialize multi texture effect
+	m_multiTexEffect.reset(new MultiTextureEffect(m_device, m_layout));
+	m_multiTexEffect->SetProjMtxBuffer(m_projCB);
+	m_multiTexEffect->SetViewMtxBuffer(m_viewCB);
+	m_multiTexEffect->SetWorldMtxBuffer(m_worldCB);
+	m_multiTexEffect->SetTextureMtxBuffers(m_textureCB, m_posterTexCB);
+	m_multiTexEffect->SetSamplerState(m_samplerWrap);
+	m_multiTexEffect->SetTextures(m_wallTexture, m_posterTexture);
 
 	m_environmentMapper.reset(new EnvironmentMapper(m_device, m_layout, m_context, 0.4f, 8.0f,
 													XMFLOAT3(-1.3f, -0.74f, -0.6f)));
@@ -265,11 +271,10 @@ void Room::DrawWalls()
 	m_surfaceColorCB->Update(m_context, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f));
 
 	//draw back wall
-	//TODO: Replace with multi texture effect
-	m_phongEffect->Begin(m_context);
+	m_multiTexEffect->Begin(m_context);
 	m_worldCB->Update(m_context, m_walls[0].getWorldMatrix());
 	m_walls[0].Render(m_context);
-	m_phongEffect->End();
+	m_multiTexEffect->End();
 
 	//draw remaining walls
 	m_textureEffect->SetTexture(m_wallTexture);
