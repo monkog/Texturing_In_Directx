@@ -52,18 +52,32 @@ shared_ptr<ID3D11VertexShader> DeviceHelper::CreateVertexShader(shared_ptr<ID3DB
 {
 	assert(m_deviceObject);
 	ID3D11VertexShader* vs;
-	HRESULT result = m_deviceObject->CreateVertexShader(byteCode->GetBufferPointer(), byteCode->GetBufferSize(), 0, &vs);
+	HRESULT result = m_deviceObject->CreateVertexShader(byteCode->GetBufferPointer(),
+														byteCode->GetBufferSize(), 0, &vs);
 	shared_ptr<ID3D11VertexShader> vertexShader(vs, Utils::COMRelease);
 	if (FAILED(result))
 		THROW_DX11(result);
 	return vertexShader;
 }
 
+shared_ptr<ID3D11GeometryShader> DeviceHelper::CreateGeometryShader(shared_ptr<ID3DBlob> byteCode)
+{
+	assert(m_deviceObject);
+	ID3D11GeometryShader* gs;
+	HRESULT result = m_deviceObject->CreateGeometryShader(byteCode->GetBufferPointer(),
+														  byteCode->GetBufferSize(), 0, &gs);
+	shared_ptr<ID3D11GeometryShader> geometryShader(gs, Utils::COMRelease);
+	if (FAILED(result))
+		THROW_DX11(result);
+	return geometryShader;
+}
+
 shared_ptr<ID3D11PixelShader> DeviceHelper::CreatePixelShader(shared_ptr<ID3DBlob> byteCode)
 {
 	assert(m_deviceObject);
 	ID3D11PixelShader* ps;
-	HRESULT result = m_deviceObject->CreatePixelShader(byteCode->GetBufferPointer(), byteCode->GetBufferSize(), 0, &ps);
+	HRESULT result = m_deviceObject->CreatePixelShader(byteCode->GetBufferPointer(),
+													   byteCode->GetBufferSize(), 0, &ps);
 	shared_ptr<ID3D11PixelShader> pixelShader(ps, Utils::COMRelease);
 	if (FAILED(result))
 		THROW_DX11(result);
@@ -99,14 +113,16 @@ shared_ptr<ID3D11Buffer> DeviceHelper::CreateBuffer(const D3D11_BUFFER_DESC& des
 }
 
 shared_ptr<ID3D11Buffer> DeviceHelper::_CreateBufferInternal(const void* pData, unsigned int byteWidth,
-	D3D11_BIND_FLAG bindFlags)
+	D3D11_BIND_FLAG bindFlags, D3D11_USAGE usage)
 {
 	assert(m_deviceObject);
 	D3D11_BUFFER_DESC desc;
 	ZeroMemory(&desc, sizeof(D3D11_BUFFER_DESC));
-	desc.Usage = D3D11_USAGE_DEFAULT;
+	desc.Usage = usage;
 	desc.BindFlags = bindFlags;
 	desc.ByteWidth = byteWidth;
+	if ((usage & D3D11_USAGE_DYNAMIC) != 0 || (usage & D3D11_USAGE_STAGING) != 0)
+		desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 	return CreateBuffer(desc, pData);
 }
 

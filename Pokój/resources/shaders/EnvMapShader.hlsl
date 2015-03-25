@@ -43,7 +43,14 @@ PSInput VS_Main(VSInput i)
 	PSInput o = (PSInput)0;
 	o.pos = float4(i.pos, 1.0f);
 	o.pos = mul(worldMatrix, o.pos);
-	//TODO: calculate texture coordinate
+
+	//TODO: calculate texture coordinates
+
+	float4 incident = (o.pos - cameraPos);
+	float4 normal = float4(i.norm, 0.0f);
+	normal = mul(worldMatrix, normal);
+	normal = normalize(normal);
+	o.tex = reflect(incident, normal);
 
 	o.pos = mul(viewMatrix, o.pos);
 	o.pos = mul(projMatrix, o.pos);

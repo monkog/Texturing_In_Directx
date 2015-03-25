@@ -6,10 +6,11 @@
 #include "gk2_camera.h"
 #include "gk2_phongEffect.h"
 #include "gk2_textureEffect.h"
-#include "gk2_multiTextureEffect.h"
 #include "gk2_constantBuffer.h"
 #include "gk2_colorTexEffect.h"
+#include "gk2_multiTexEffect.h"
 #include "gk2_environmentMapper.h"
+#include "gk2_particles.h"
 
 namespace gk2
 {
@@ -33,8 +34,9 @@ namespace gk2
 		static const float TABLE_H;
 		static const float TABLE_TOP_H;
 		static const float TABLE_R;
-		static const XMFLOAT3 TABLE_POS;
+		static const XMFLOAT4 TABLE_POS;
 		static const XMFLOAT4 LIGHT_POS[2];
+		static const unsigned int BS_MASK;
 
 		gk2::Mesh m_walls[6];
 		gk2::Mesh m_teapot;
@@ -73,15 +75,19 @@ namespace gk2
 		std::shared_ptr<gk2::PhongEffect> m_phongEffect;
 		std::shared_ptr<gk2::TextureEffect> m_textureEffect;
 		std::shared_ptr<gk2::ColorTexEffect> m_colorTexEffect;
-		std::shared_ptr<gk2::MultiTextureEffect> m_multiTexEffect;
+		std::shared_ptr<gk2::MultiTexEffect> m_multiTexEffect;
 		std::shared_ptr<gk2::EnvironmentMapper> m_environmentMapper;
+		std::shared_ptr<gk2::ParticleSystem> m_particles;
 		std::shared_ptr<ID3D11InputLayout> m_layout;
 
-		std::shared_ptr<ID3D11RasterizerState> m_rsCullNone;
+		std::shared_ptr<ID3D11RasterizerState> m_rsCullFront;
+		std::shared_ptr<ID3D11BlendState> m_bsAlpha;
+		std::shared_ptr<ID3D11DepthStencilState> m_dssNoWrite;
 
 		void InitializeConstantBuffers();
 		void InitializeTextures();
 		void InitializeCamera();
+		void InitializeRenderStates();
 		void CreateScene();
 		void UpdateCamera();
 		void UpdateLamp(float dt);
@@ -89,7 +95,9 @@ namespace gk2
 		void DrawScene();
 		void DrawWalls();
 		void DrawTeapot();
-		void DrawTable();
+		void DrawTableElement(gk2::Mesh& element);
+		void DrawTableLegs(XMVECTOR camVec);
+		void DrawTransparentObjects();
 	};
 }
 

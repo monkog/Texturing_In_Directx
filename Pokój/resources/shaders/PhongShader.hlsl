@@ -72,5 +72,5 @@ float4 PS_Main(PSInput i) : SV_TARGET
 	halfVec = normalize(viewVec + lightVec);
 	color += lightColor * surfaceColor * kd * saturate(dot(normal, lightVec)) +
 			 lightColor * ks * pow(saturate(dot(normal, halfVec)), m);
-	return float4(saturate(color), 1.0f);
+	return float4(saturate(color), surfaceColor.a);
 }
