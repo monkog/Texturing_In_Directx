@@ -37,7 +37,7 @@ struct PSInput
 {
 	float4 pos : SV_POSITION;
 	float2 tex1: TEXCOORD0;
-	float2 tex2: TEXCOORD0;
+	float2 tex2: TEXCOORD1;
 };
 
 PSInput VS_Main(VSInput i)

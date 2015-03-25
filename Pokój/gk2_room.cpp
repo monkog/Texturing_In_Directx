@@ -145,9 +145,10 @@ void Room::CreateScene()
 	m_lightPosCB->Update(m_context, LIGHT_POS);
 	m_textureCB->Update(m_context, XMMatrixScaling(0.25f, 0.25f, 1.0f) * XMMatrixTranslation(0.5f, 0.5f, 0.0f));
 
-	//TODO: replace following with correct value
-	m_posterTexCB->Update(m_context, XMMatrixTranslation(0.5, 0.5, 0.0) * XMMatrixScaling(0.5, -2 / 3.0, 1)
-						  * XMMatrixRotationZ(XM_PI / 18) * XMMatrixTranslation(-0.8, 0, 0));
+	XMMATRIX mat =  XMMatrixTranslation(-0.5f, -0.5f, 0.0f) * XMMatrixScaling(0.5f, -2 / 3.0f, 1.0f)
+						  * XMMatrixRotationZ(XM_PI / 18) * XMMatrixTranslation(-0.8f, 0.0f, 0.0f);
+	XMVECTOR v;
+	m_posterTexCB->Update(m_context, XMMatrixInverse(&v, mat));
 }
 
 bool Room::LoadContent()
@@ -187,7 +188,7 @@ bool Room::LoadContent()
 	m_multiTexEffect->SetViewMtxBuffer(m_viewCB);
 	m_multiTexEffect->SetWorldMtxBuffer(m_worldCB);
 	m_multiTexEffect->SetTextureMtxBuffers(m_textureCB, m_posterTexCB);
-	m_multiTexEffect->SetSamplerState(m_samplerWrap);
+	m_multiTexEffect->SetSamplerState(m_samplerBorder);
 	m_multiTexEffect->SetTextures(m_wallTexture, m_posterTexture);
 
 	m_environmentMapper.reset(new EnvironmentMapper(m_device, m_layout, m_context, 0.4f, 8.0f,
