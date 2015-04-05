@@ -8,12 +8,12 @@ using namespace std;
 using namespace gk2;
 
 const D3D11_INPUT_ELEMENT_DESC ParticleVertex::Layout[ParticleVertex::LayoutElements] =
-	{
-		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		{ "TEXCOORD", 0, DXGI_FORMAT_R32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		{ "TEXCOORD", 1, DXGI_FORMAT_R32_FLOAT, 0, 16, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		{ "TEXCOORD", 2, DXGI_FORMAT_R32_FLOAT, 0, 20, D3D11_INPUT_PER_VERTEX_DATA, 0 }
-	};
+{
+	{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+	{ "TEXCOORD", 0, DXGI_FORMAT_R32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+	{ "TEXCOORD", 1, DXGI_FORMAT_R32_FLOAT, 0, 16, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+	{ "TEXCOORD", 2, DXGI_FORMAT_R32_FLOAT, 0, 20, D3D11_INPUT_PER_VERTEX_DATA, 0 }
+};
 
 bool ParticleComparer::operator()(const ParticleVertex& p1, const ParticleVertex& p2)
 {
@@ -80,31 +80,45 @@ void ParticleSystem::SetSamplerState(const shared_ptr<ID3D11SamplerState>& sampl
 XMFLOAT3 ParticleSystem::RandomVelocity()
 {
 	float x, y;
-	do 
+	do
 	{
-		x = 2.0f * static_cast<float>(rand())/RAND_MAX - 1.0f;
-		y = 2.0f * static_cast<float>(rand())/RAND_MAX - 1.0f;
+		x = 2.0f * static_cast<float>(rand()) / RAND_MAX - 1.0f;
+		y = 2.0f * static_cast<float>(rand()) / RAND_MAX - 1.0f;
 	} while (x*x + y*y > 1.0f);
 	float a = tan(MAX_ANGLE);
 	XMFLOAT3 v(x * a, 1.0f, y * a);
 	XMVECTOR velocity = XMLoadFloat3(&v);
 	float  len = MIN_VELOCITY + (MAX_VELOCITY - MIN_VELOCITY) *
-				 static_cast<float>(rand())/static_cast<float>(RAND_MAX);
+		static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
 	velocity = len * XMVector3Normalize(velocity);
 	XMStoreFloat3(&v, velocity);
 	return v;
+}
+
+float RandomFloat(float a, float b)
+{
+	float random = ((float)rand()) / (float)RAND_MAX;
+	float diff = b - a;
+	float r = random * diff;
+	return a + r;
 }
 
 void ParticleSystem::AddNewParticle()
 {
 	Particle p;
 	//TODO: Setup initial values
+	p.Vertex.Age = 0;
+	p.Vertex.Size = PARTICLE_SIZE;
+	p.Velocities.Velocity = RandomVelocity();
+	p.Vertex.Pos = m_emitterPos;
+	p.Vertex.Angle = 0;
+	p.Velocities.AngleVelocity = RandomFloat(MIN_VELOCITY, MAX_VELOCITY);
 	m_particles.push_back(p);
 }
 
 XMFLOAT3 operator *(const XMFLOAT3& v1, float d)
 {
-	return XMFLOAT3(v1.x * d , v1.y * d, v1.z * d);
+	return XMFLOAT3(v1.x * d, v1.y * d, v1.z * d);
 }
 
 XMFLOAT3 operator +(const XMFLOAT3& v1, const XMFLOAT3& v2)
@@ -125,6 +139,10 @@ XMFLOAT4 operator -(const XMFLOAT4& v1, const XMFLOAT4& v2)
 void ParticleSystem::UpdateParticle(Particle& p, float dt)
 {
 	//TODO: Update particle's fields;
+	p.Vertex.Age += dt;
+	p.Vertex.Pos = p.Vertex.Pos + p.Velocities.Velocity * dt;
+	p.Vertex.Angle += p.Velocities.AngleVelocity * dt;
+	p.Vertex.Size += PARTICLE_SCALE * PARTICLE_SIZE * dt;
 }
 
 void ParticleSystem::UpdateVertexBuffer(shared_ptr<ID3D11DeviceContext>& context, XMFLOAT4 cameraPos)
@@ -132,6 +150,14 @@ void ParticleSystem::UpdateVertexBuffer(shared_ptr<ID3D11DeviceContext>& context
 	vector<ParticleVertex> vertices(MAX_PARTICLES);
 	XMFLOAT4 cameraTarget(0.0f, 0.0f, 0.0f, 1.0f);
 	//TODO: copy ParticleVertex values form the list to the vector and sort them using ParticleComparer
+	int index = 0;
+	for (list<gk2::Particle>::iterator it = m_particles.begin(); it != m_particles.end(); it++)
+	{
+		vertices.at(index) = it->Vertex;
+		index++;
+	}
+	sort(vertices.begin(), vertices.end(), ParticleComparer(cameraTarget, cameraPos));
+
 	D3D11_MAPPED_SUBRESOURCE resource;
 	HRESULT hr = context->Map(m_vertices.get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &resource);
 	if (FAILED(hr))
@@ -143,8 +169,16 @@ void ParticleSystem::UpdateVertexBuffer(shared_ptr<ID3D11DeviceContext>& context
 void ParticleSystem::Update(shared_ptr<ID3D11DeviceContext>& context, float dt, XMFLOAT4 cameraPos)
 {
 	//TODO: Update existing particles and remove them if necessary
+	m_particles.erase(remove_if(m_particles.begin(), m_particles.end(), [](gk2::Particle particle){  return particle.Vertex.Age > TIME_TO_LIVE; }), m_particles.end());
+
+	for (list<gk2::Particle>::iterator it = m_particles.begin(); it != m_particles.end(); it++)
+		UpdateParticle(*it, dt);
 
 	//TODO: Create new particles if needed.
+	m_particlesToCreate = EMISSION_RATE * dt;
+	for (int i = 0; i < MAX_PARTICLES && m_particlesToCreate > 0; i++, m_particlesToCreate--)
+		AddNewParticle();
+	m_particlesCount = m_particles.size();
 	UpdateVertexBuffer(context, cameraPos);
 }
 

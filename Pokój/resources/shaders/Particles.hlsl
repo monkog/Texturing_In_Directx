@@ -56,10 +56,42 @@ void GS_Main(point GSInput inArray[1], inout TriangleStream<PSInput> ostream)
 	sincos(i.angle, sina, cosa);
 	float dx = (cosa - sina) * 0.5 * i.size;
 	float dy = (cosa + sina) * 0.5 * i.size;
+	float tex2x = i.age / TimeToLive;
 	PSInput o = (PSInput)0;
 
 	//TODO: Initialize o for 4 vertices to make a bilboard and append them to the ostream
-	
+	// Left down corner
+	o = (PSInput)0;
+	o.pos = float4(i.pos.x - dx, i.pos.y - dy, i.pos.z, 1.0);
+	o.pos = mul(projMatrix, o.pos);
+	o.tex1 = float2(0, 1);
+	o.tex2 = float2(tex2x, 0.5f);
+	ostream.Append(o);
+
+	// Left up corner
+	o = (PSInput)0;
+	o.pos = float4(i.pos.x - dy, i.pos.y + dx, i.pos.z, 1.0);
+	o.pos = mul(projMatrix, o.pos);
+	o.tex1 = float2(0, 0);
+	o.tex2 = float2(tex2x, 0.5f);
+	ostream.Append(o);
+
+	// Right Down corner
+	o = (PSInput)0;
+	o.pos = float4(i.pos.x + dy, i.pos.y - dx, i.pos.z, 1.0);
+	o.pos = mul(projMatrix, o.pos);
+	o.tex1 = float2(1, 1);
+	o.tex2 = float2(tex2x, 0.5f);
+	ostream.Append(o);
+
+	// Right up corner
+	o = (PSInput)0;
+	o.pos = float4(i.pos.x + dx, i.pos.y + dy, i.pos.z, 1.0);
+	o.pos = mul(projMatrix, o.pos);
+	o.tex1 = float2(1, 0);
+	o.tex2 = float2(tex2x, 0.5f);
+	ostream.Append(o);
+
 	ostream.RestartStrip();
 }
 
@@ -70,5 +102,5 @@ float4 PS_Main(PSInput i) : SV_TARGET
 	float alpha = color.a * opacity.a * 0.3f;
 	if (alpha == 0.0f)
 		discard;
-	return float4(color.xyz,alpha);
+	return float4(color.xyz, alpha);
 }
