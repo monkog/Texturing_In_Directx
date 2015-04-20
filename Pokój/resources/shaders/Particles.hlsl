@@ -60,6 +60,15 @@ void GS_Main(point GSInput inArray[1], inout TriangleStream<PSInput> ostream)
 	PSInput o = (PSInput)0;
 
 	//TODO: Initialize o for 4 vertices to make a bilboard and append them to the ostream
+
+	// Right up corner
+	o = (PSInput)0;
+	o.pos = float4(i.pos.x + dx, i.pos.y + dy, i.pos.z, 1.0);
+	o.pos = mul(projMatrix, o.pos);
+	o.tex1 = float2(1, 0);
+	o.tex2 = float2(tex2x, 0.5f);
+	ostream.Append(o);
+
 	// Left down corner
 	o = (PSInput)0;
 	o.pos = float4(i.pos.x - dx, i.pos.y - dy, i.pos.z, 1.0);
@@ -81,14 +90,6 @@ void GS_Main(point GSInput inArray[1], inout TriangleStream<PSInput> ostream)
 	o.pos = float4(i.pos.x + dy, i.pos.y - dx, i.pos.z, 1.0);
 	o.pos = mul(projMatrix, o.pos);
 	o.tex1 = float2(1, 1);
-	o.tex2 = float2(tex2x, 0.5f);
-	ostream.Append(o);
-
-	// Right up corner
-	o = (PSInput)0;
-	o.pos = float4(i.pos.x + dx, i.pos.y + dy, i.pos.z, 1.0);
-	o.pos = mul(projMatrix, o.pos);
-	o.tex1 = float2(1, 0);
 	o.tex2 = float2(tex2x, 0.5f);
 	ostream.Append(o);
 

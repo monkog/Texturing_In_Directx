@@ -95,14 +95,6 @@ XMFLOAT3 ParticleSystem::RandomVelocity()
 	return v;
 }
 
-float RandomFloat(float a, float b)
-{
-	float random = ((float)rand()) / (float)RAND_MAX;
-	float diff = b - a;
-	float r = random * diff;
-	return a + r;
-}
-
 void ParticleSystem::AddNewParticle()
 {
 	Particle p;
@@ -112,7 +104,7 @@ void ParticleSystem::AddNewParticle()
 	p.Velocities.Velocity = RandomVelocity();
 	p.Vertex.Pos = m_emitterPos;
 	p.Vertex.Angle = 0;
-	p.Velocities.AngleVelocity = RandomFloat(MIN_VELOCITY, MAX_VELOCITY);
+	p.Velocities.AngleVelocity = MIN_ANGLE_VEL + (MAX_ANGLE_VEL - MIN_ANGLE_VEL) * static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
 	m_particles.push_back(p);
 }
 
@@ -169,15 +161,16 @@ void ParticleSystem::UpdateVertexBuffer(shared_ptr<ID3D11DeviceContext>& context
 void ParticleSystem::Update(shared_ptr<ID3D11DeviceContext>& context, float dt, XMFLOAT4 cameraPos)
 {
 	//TODO: Update existing particles and remove them if necessary
-	m_particles.erase(remove_if(m_particles.begin(), m_particles.end(), [](gk2::Particle particle){  return particle.Vertex.Age > TIME_TO_LIVE; }), m_particles.end());
-
 	for (list<gk2::Particle>::iterator it = m_particles.begin(); it != m_particles.end(); it++)
 		UpdateParticle(*it, dt);
 
+	m_particles.erase(remove_if(m_particles.begin(), m_particles.end(), [](gk2::Particle particle){  return particle.Vertex.Age > TIME_TO_LIVE; }), m_particles.end());
+	
 	//TODO: Create new particles if needed.
 	m_particlesToCreate = EMISSION_RATE * dt;
-	for (int i = 0; i < MAX_PARTICLES && m_particlesToCreate > 0; i++, m_particlesToCreate--)
+	for (; m_particles.size() < MAX_PARTICLES && m_particlesToCreate > 0; m_particlesToCreate--)
 		AddNewParticle();
+
 	m_particlesCount = m_particles.size();
 	UpdateVertexBuffer(context, cameraPos);
 }
